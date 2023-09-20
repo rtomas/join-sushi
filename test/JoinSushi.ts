@@ -15,7 +15,7 @@ const MASTERCHEF_V2 = "0xEF0881eC094552b2e128Cf945EF17a6752B4Ec5d";
 const VITALIK_ACCOUNT = "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045";
 const IS_MASTERCHEF_V1 = true;
 
-describe("SushiSwapLiquidityInteract", function () {
+describe("SushiSwapLiquidity Testing", function () {
     async function deployFixture() {
         let owner: Signer;
         let tokenA, tokenB: Contract;
@@ -41,7 +41,7 @@ describe("SushiSwapLiquidityInteract", function () {
 
     before(async function () {});
 
-    it("should add Liquidity and stake LP", async function () {
+    it("Should add Liquidity and stake LP (happy path)", async function () {
         const { owner, tokenA, tokenB, sushiSwapLiquidityContract, router } = await loadFixture(deployFixture);
 
         // Transfer tokens to the SushiSwapLiquidityInteract contract
@@ -61,7 +61,7 @@ describe("SushiSwapLiquidityInteract", function () {
         expect(info[0].toString()).to.equal("698205729");
     });
 
-    it("should error as amount of token A is 0", async function () {
+    it("Given token A with amount 0, when joining liquidity then raise an error", async function () {
         const { owner, tokenA, tokenB, sushiSwapLiquidityContract, router } = await loadFixture(deployFixture);
 
         // Transfer tokens to the SushiSwapLiquidityInteract contract
@@ -76,7 +76,7 @@ describe("SushiSwapLiquidityInteract", function () {
         await expect(sushiSwapLiquidityContract.JoinLiquidity(amountA, amountB, pid)).to.be.revertedWith("Invalid TokenA Supply");
     });
 
-    it("should error as amount of token B is 0", async function () {
+    it("Given token B with amount 0, when joining liquidity then raise an error", async function () {
         const { owner, tokenA, tokenB, sushiSwapLiquidityContract, router } = await loadFixture(deployFixture);
 
         // Transfer tokens to the SushiSwapLiquidityInteract contract
@@ -91,7 +91,7 @@ describe("SushiSwapLiquidityInteract", function () {
         await expect(sushiSwapLiquidityContract.JoinLiquidity(amountA, amountB, pid)).to.be.revertedWith("Invalid TokenB Supply");
     });
 
-    it("should error as not enough funds of token B are in the contract", async function () {
+    it("Given not enough amount of token A into the contract, when joining liquidity then raise an error", async function () {
         const { owner, tokenA, tokenB, sushiSwapLiquidityContract, router } = await loadFixture(deployFixture);
 
         // Transfer tokens to the SushiSwapLiquidityInteract contract

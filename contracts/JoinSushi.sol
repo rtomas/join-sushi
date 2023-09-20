@@ -19,6 +19,9 @@ contract SushiSwapLiquidityInteract {
     address public masterChef; // Address of MasterChefV1 or MasterChefV2
     bool public isMasterChefV1; // Is the target MasterChef contract MasterChefV1 or MasterChefV2
     uint256 pidMasterChef; // Pool ID of the token pair on MasterChef
+
+    event JoinLiquidityEvent(uint256 liquidity, uint256 amountA, uint256 amountB);
+
     constructor(
         address _sushiRouter,
         address _tokenA,
@@ -69,7 +72,8 @@ contract SushiSwapLiquidityInteract {
         approveMasterChef(liquidity);
         depositLP(liquidity);
 
-        // TODO: Emit Event
+        // Emit Event
+        emit JoinLiquidityEvent(liquidity, _amountA, _amountB);
     }
 
 
@@ -108,19 +112,15 @@ contract SushiSwapLiquidityInteract {
     function approveMasterChef( uint256 amountLP) private OnlyOwner {
         address addressPoolAB = getPoolPairAddressForTokens();
         IERC20(addressPoolAB).approve(address(masterChef), amountLP);
-
+        console.log("Address: %s", addressPoolAB);
     }
 
     //  Deposit LP tokens into MasterChef
     function depositLP(uint256 liquidity) private OnlyOwner {
         if (isMasterChefV1) {
-            console.log("MasterChefV1");
             IMasterChef(masterChef).deposit(pidMasterChef, liquidity);
         } else {
-            console.log("MasterChefV2");
-            uint data = IMasterChefV2(masterChef).poolLength();
-            console.log("PoolLength: %s", data);
-            IMasterChefV2(masterChef).deposit(pidMasterChef-2, liquidity, address(this));
+            IMasterChefV2(masterChef).deposit(15, liquidity, address(this)); // TODO: 15 hardcoded
         }
     }
 

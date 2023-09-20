@@ -1,12 +1,9 @@
-/* 
-import { anyValue } from "@nomicfoundation/hardhat-chai-matchers/withArgs";
-import { expect } from "chai"; */
+import { expect } from "chai";
 import { ethers } from "hardhat";
 
 import { Contract, Signer } from "ethers";
 
-//const SushiSwapLiquidityInteractABI = require("../artifacts/contracts/JoinSushi.sol/SushiSwapLiquidityInteract.json");
-import { IERC20__factory, SushiSwapLiquidityInteract, IUniswapV2Router01 } from "../typechain-types";
+import { IERC20__factory, SushiSwapLiquidityInteract, IUniswapV2Router01, IMasterChefV2 } from "../typechain-types";
 const helpers = require("@nomicfoundation/hardhat-toolbox/network-helpers");
 
 const UNISWAP_ROUTER = "0xd9e1cE17f2641f24aE83637ab66a2cca9C378B9F";

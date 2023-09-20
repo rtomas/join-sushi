@@ -13,8 +13,3 @@ The smart contract is compatible with both MasterChefV1 and MasterChefV2, and it
 1. You must get the free key from infura and add it to the .env file.
 2. Run
    `npx hardhat test --network hardhat`
-
-## Problems at this moment
-
-I don't know how to get the correct pid from the MasterChef Contract.
-Trying some different solutions. now it's hardcoded and throws an error 'BoringERC20: TransferFrom failed'

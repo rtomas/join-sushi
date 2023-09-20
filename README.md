@@ -1,9 +1,20 @@
 # Join the SushiSwap Liquidity Mining Program
 
+This project is to joining the SushiSwap liquidity mining program in a single transaction.
+
+The smart contract is compatible with both MasterChefV1 and MasterChefV2, and it can work with any pair of tokens.
+
 ## Setup
 
-npm install
+`npm install`
 
 ## Test
 
-npx hardhat test --network hardhat
+1. You must get the free key from infura and add it to the .env file.
+2. Run
+   `npx hardhat test --network hardhat`
+
+## Problems at this moment
+
+I don't know how to get the correct pid from the MasterChef Contract.
+Trying some different solutions. now it's hardcoded and throws an error 'BoringERC20: TransferFrom failed'

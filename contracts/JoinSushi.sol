@@ -46,8 +46,8 @@ contract SushiSwapLiquidityInteract {
     }
 
     function JoinLiquidity(uint256 _amountA, uint256 _amountB, uint _pid) public OnlyOwner {
-        require(_amountA > 0, "Invalid TokenA Supply A");
-        require(_amountB > 0, "Invalid TokenB Supply B");
+        require(_amountA > 0, "Invalid TokenA Supply");
+        require(_amountB > 0, "Invalid TokenB Supply");
         require(CheckBalance(tokenA) >= _amountA ,"Insuficient Balance TokenA");
         require(CheckBalance(tokenB) >= _amountB ,"Insuficient Balance TokenB");
 

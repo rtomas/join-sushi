@@ -12,7 +12,7 @@ const DAI = "0x6B175474E89094C44Da98b954EedeAC495271d0F";
 const MASTERCHEF_V1 = "0xc2EdaD668740f1aA35E4D8f227fB8E17dcA888Cd";
 const MASTERCHEF_V2 = "0xEF0881eC094552b2e128Cf945EF17a6752B4Ec5d";
 const VITALIK_ACCOUNT = "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045";
-const IS_MASTERCHEF_V1 = false;
+const IS_MASTERCHEF_V1 = true;
 
 describe("SushiSwapLiquidityInteract", function () {
     let owner: Signer;
@@ -31,29 +31,27 @@ describe("SushiSwapLiquidityInteract", function () {
 
         // Deploy the SushiSwapLiquidityInteract contract
         const SushiSwapLiquidityInteract = await ethers.getContractFactory("SushiSwapLiquidityInteract", owner);
-        sushiSwapLiquidityContract = await SushiSwapLiquidityInteract.deploy(UNISWAP_ROUTER, tokenA, tokenB, MASTERCHEF_V2, IS_MASTERCHEF_V1);
+        sushiSwapLiquidityContract = await SushiSwapLiquidityInteract.deploy(UNISWAP_ROUTER, tokenA, tokenB, MASTERCHEF_V1, IS_MASTERCHEF_V1);
 
         // Get deployed UniswapV2Router01 contract
         router = await ethers.getContractAt("IUniswapV2Router01", UNISWAP_ROUTER);
-
-        // get balance of tokenA for owner
-        const balanceA = await tokenA.balanceOf(owner.getAddress());
-        console.log("balanceA: ", balanceA.toString());
-
-        // get balance of tokenB for owner
-        const balanceB = await tokenB.balanceOf(owner.getAddress());
-        console.log("balanceB: ", balanceB.toString());
     });
 
     it("should add Liquidity and stake LP", async function () {
         // Transfer tokens to the SushiSwapLiquidityInteract contract
         let amountA = 24920000;
         let amountB = 9000000000000;
+        let pid = 2; // for DAI-WETH pair
+
         await tokenA.transfer(sushiSwapLiquidityContract, amountA);
         await tokenB.transfer(sushiSwapLiquidityContract, amountB);
 
-        await sushiSwapLiquidityContract.JoinLiquidity(amountA, amountB);
+        await sushiSwapLiquidityContract.JoinLiquidity(amountA, amountB, pid);
 
-        // TODO: expected amount of LP tokens
+        // expected amount of LP tokens
+        const mc = await ethers.getContractAt("IMasterChef", MASTERCHEF_V1);
+        const info = await mc.userInfo(pid, sushiSwapLiquidityContract);
+
+        expect(info[0].toString()).to.equal("698205729");
     });
 });

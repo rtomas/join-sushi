@@ -2,7 +2,6 @@
 pragma solidity ^0.8.19;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-//import "./IERC20.sol";
 import "./SushiSwap/IMasterChef.sol";
 import "./SushiSwap/IMasterChefV2.sol";
 import "./UniSwap/IUniswapV2Factory.sol";
@@ -18,7 +17,6 @@ contract SushiSwapLiquidityInteract {
     IERC20 public tokenB; // Token you want to pair with tokenA
     address public masterChef; // Address of MasterChefV1 or MasterChefV2
     bool public isMasterChefV1; // Is the target MasterChef contract MasterChefV1 or MasterChefV2
-    uint256 pidMasterChef; // Pool ID of the token pair on MasterChef
 
     event JoinLiquidityEvent(uint256 liquidity, uint256 amountA, uint256 amountB);
 
@@ -40,12 +38,6 @@ contract SushiSwapLiquidityInteract {
         tokenB = IERC20(_tokenB);
         masterChef = _masterChef;
         isMasterChefV1 = _isMasterChefV1;
-
-        if (isMasterChefV1) {
-            pidMasterChef = IMasterChef(masterChef).poolLength()+1;
-        } else {
-            pidMasterChef = IMasterChefV2(masterChef).poolLength()+1;
-        }
     }
 
     modifier OnlyOwner() {
@@ -53,13 +45,12 @@ contract SushiSwapLiquidityInteract {
         _;
     }
 
-    function JoinLiquidity(uint256 _amountA, uint256 _amountB) public OnlyOwner {
+    function JoinLiquidity(uint256 _amountA, uint256 _amountB, uint _pid) public OnlyOwner {
         require(_amountA > 0, "Invalid TokenA Supply A");
         require(_amountB > 0, "Invalid TokenB Supply B");
         require(CheckBalance(tokenA) >= _amountA ,"Insuficient Balance TokenA");
         require(CheckBalance(tokenB) >= _amountB ,"Insuficient Balance TokenB");
 
-        console.log("Init");
         approveSushiRouterToUseTokens(_amountA, _amountB);
         
         // check allowance
@@ -70,9 +61,9 @@ contract SushiSwapLiquidityInteract {
         (_amountA, _amountB, liquidity) = provideLiquidity(_amountA, _amountB);
 
         approveMasterChef(liquidity);
-        depositLP(liquidity);
+        depositLP(_pid, liquidity);
 
-        // Emit Event
+        // emit Event
         emit JoinLiquidityEvent(liquidity, _amountA, _amountB);
     }
 
@@ -112,15 +103,14 @@ contract SushiSwapLiquidityInteract {
     function approveMasterChef( uint256 amountLP) private OnlyOwner {
         address addressPoolAB = getPoolPairAddressForTokens();
         IERC20(addressPoolAB).approve(address(masterChef), amountLP);
-        console.log("Address: %s", addressPoolAB);
     }
 
     //  Deposit LP tokens into MasterChef
-    function depositLP(uint256 liquidity) private OnlyOwner {
+    function depositLP(uint _pid, uint256 liquidity) private OnlyOwner {
         if (isMasterChefV1) {
-            IMasterChef(masterChef).deposit(pidMasterChef, liquidity);
+            IMasterChef(masterChef).deposit(_pid, liquidity);
         } else {
-            IMasterChefV2(masterChef).deposit(15, liquidity, address(this)); // TODO: 15 hardcoded
+            IMasterChefV2(masterChef).deposit(_pid, liquidity, address(this)); 
         }
     }
 

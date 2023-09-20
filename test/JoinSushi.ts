@@ -3,7 +3,12 @@ import { ethers } from "hardhat";
 
 import { Contract, Signer } from "ethers";
 
-import { IERC20__factory, SushiSwapLiquidityInteract, IUniswapV2Router01, IMasterChefV2 } from "../typechain-types";
+import {
+    IERC20__factory,
+    SushiSwapLiquidityInteract,
+    IUniswapV2Router01,
+    IMasterChefV2,
+} from "../typechain-types";
 const helpers = require("@nomicfoundation/hardhat-toolbox/network-helpers");
 const { loadFixture } = require("@nomicfoundation/hardhat-toolbox/network-helpers");
 
@@ -30,8 +35,17 @@ describe("SushiSwapLiquidity Testing", function () {
         tokenB = await new ethers.Contract(DAI, IERC20__factory.abi, owner);
 
         // Deploy the SushiSwapLiquidityInteract contract
-        const SushiSwapLiquidityInteract = await ethers.getContractFactory("SushiSwapLiquidityInteract", owner);
-        sushiSwapLiquidityContract = await SushiSwapLiquidityInteract.deploy(UNISWAP_ROUTER, tokenA, tokenB, MASTERCHEF_V1, IS_MASTERCHEF_V1);
+        const SushiSwapLiquidityInteract = await ethers.getContractFactory(
+            "SushiSwapLiquidityInteract",
+            owner
+        );
+        sushiSwapLiquidityContract = await SushiSwapLiquidityInteract.deploy(
+            UNISWAP_ROUTER,
+            tokenA,
+            tokenB,
+            MASTERCHEF_V1,
+            IS_MASTERCHEF_V1
+        );
 
         // Get deployed UniswapV2Router01 contract
         router = await ethers.getContractAt("IUniswapV2Router01", UNISWAP_ROUTER);
@@ -42,7 +56,9 @@ describe("SushiSwapLiquidity Testing", function () {
     before(async function () {});
 
     it("Should add Liquidity and stake LP (happy path)", async function () {
-        const { owner, tokenA, tokenB, sushiSwapLiquidityContract, router } = await loadFixture(deployFixture);
+        const { owner, tokenA, tokenB, sushiSwapLiquidityContract, router } = await loadFixture(
+            deployFixture
+        );
 
         // Transfer tokens to the SushiSwapLiquidityInteract contract
         let amountA = 24920000;
@@ -62,7 +78,9 @@ describe("SushiSwapLiquidity Testing", function () {
     });
 
     it("Given token A with amount 0, when joining liquidity then raise an error", async function () {
-        const { owner, tokenA, tokenB, sushiSwapLiquidityContract, router } = await loadFixture(deployFixture);
+        const { owner, tokenA, tokenB, sushiSwapLiquidityContract, router } = await loadFixture(
+            deployFixture
+        );
 
         // Transfer tokens to the SushiSwapLiquidityInteract contract
         let amountA = 0;
@@ -73,11 +91,15 @@ describe("SushiSwapLiquidity Testing", function () {
         await tokenB.transfer(sushiSwapLiquidityContract, amountB);
 
         // expected error as amountA is 0
-        await expect(sushiSwapLiquidityContract.JoinLiquidity(amountA, amountB, pid)).to.be.revertedWith("Invalid TokenA Supply");
+        await expect(
+            sushiSwapLiquidityContract.JoinLiquidity(amountA, amountB, pid)
+        ).to.be.revertedWith("Invalid TokenA Supply");
     });
 
     it("Given token B with amount 0, when joining liquidity then raise an error", async function () {
-        const { owner, tokenA, tokenB, sushiSwapLiquidityContract, router } = await loadFixture(deployFixture);
+        const { owner, tokenA, tokenB, sushiSwapLiquidityContract, router } = await loadFixture(
+            deployFixture
+        );
 
         // Transfer tokens to the SushiSwapLiquidityInteract contract
         let amountA = 2220;
@@ -88,11 +110,15 @@ describe("SushiSwapLiquidity Testing", function () {
         await tokenB.transfer(sushiSwapLiquidityContract, amountB);
 
         // expected error as amountB is 0
-        await expect(sushiSwapLiquidityContract.JoinLiquidity(amountA, amountB, pid)).to.be.revertedWith("Invalid TokenB Supply");
+        await expect(
+            sushiSwapLiquidityContract.JoinLiquidity(amountA, amountB, pid)
+        ).to.be.revertedWith("Invalid TokenB Supply");
     });
 
     it("Given not enough amount of token A into the contract, when joining liquidity then raise an error", async function () {
-        const { owner, tokenA, tokenB, sushiSwapLiquidityContract, router } = await loadFixture(deployFixture);
+        const { owner, tokenA, tokenB, sushiSwapLiquidityContract, router } = await loadFixture(
+            deployFixture
+        );
 
         // Transfer tokens to the SushiSwapLiquidityInteract contract
         let amountA = 2220;
@@ -103,6 +129,8 @@ describe("SushiSwapLiquidity Testing", function () {
         await tokenB.transfer(sushiSwapLiquidityContract, 0);
 
         // expected error as amountB is 0
-        await expect(sushiSwapLiquidityContract.JoinLiquidity(amountA, amountB, pid)).to.be.revertedWith("Insuficient Balance TokenB");
+        await expect(
+            sushiSwapLiquidityContract.JoinLiquidity(amountA, amountB, pid)
+        ).to.be.revertedWith("Insuficient Balance TokenB");
     });
 });

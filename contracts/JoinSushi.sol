@@ -18,7 +18,7 @@ contract SushiSwapLiquidityInteract {
     IERC20 public tokenB; // Token you want to pair with tokenA
     address public masterChef; // Address of MasterChefV1 or MasterChefV2
     bool public isMasterChefV1; // Is the target MasterChef contract MasterChefV1 or MasterChefV2
-
+    uint256 pidMasterChef; // Pool ID of the token pair on MasterChef
     constructor(
         address _sushiRouter,
         address _tokenA,
@@ -37,6 +37,12 @@ contract SushiSwapLiquidityInteract {
         tokenB = IERC20(_tokenB);
         masterChef = _masterChef;
         isMasterChefV1 = _isMasterChefV1;
+
+        if (isMasterChefV1) {
+            pidMasterChef = IMasterChef(masterChef).poolLength()+1;
+        } else {
+            pidMasterChef = IMasterChefV2(masterChef).poolLength()+1;
+        }
     }
 
     modifier OnlyOwner() {
@@ -53,30 +59,21 @@ contract SushiSwapLiquidityInteract {
         console.log("Init");
         approveSushiRouterToUseTokens(_amountA, _amountB);
         
-        // log check allowance
+        // check allowance
         require(CheckAllowance(tokenA) >= _amountA ,"Insuficient Allowance A");
         require(CheckAllowance(tokenB) >= _amountB ,"Insuficient Allowance B");
         
-
         uint liquidity;
-        uint pId;
-        (_amountA, _amountB, liquidity, pId) = provideLiquidity(_amountA, _amountB);
+        (_amountA, _amountB, liquidity) = provideLiquidity(_amountA, _amountB);
 
         approveMasterChef(liquidity);
-        depositLP(pId, liquidity);
+        depositLP(liquidity);
 
         // TODO: Emit Event
     }
 
-    /* function addLiquidityToSmartContract(
-        uint256 amountA,
-        uint256 amountB
-    ) private OnlyOwner {
-        IERC20(tokenA).transferFrom(owner, address(this), amountA);
-        IERC20(tokenB).transferFrom(owner, address(this), amountB);
-    } */
 
-    // Step 1: Approve SushiSwap Router to spend tokens
+    // Approve SushiSwap Router to spend tokens
     function approveSushiRouterToUseTokens(
         uint256 _amountA,
         uint256 _amountB
@@ -85,53 +82,45 @@ contract SushiSwapLiquidityInteract {
         IERC20(tokenB).approve(address(sushiRouter), _amountB);
     }
 
-    // Step 2: Provide liquidity on SushiSwap
+    // Provide liquidity on SushiSwap
     function provideLiquidity(
         uint256 amountA,
         uint256 amountB
-    ) private OnlyOwner returns (uint, uint, uint, uint) {
-        // get length of pool
-        uint256 length = sushiFactory.allPairsLength();
+    ) private OnlyOwner returns (uint, uint, uint) {
+        uint256 valueA = sushiRouter.quote(amountB, amountB, amountA);
+        uint256 valueB = sushiRouter.quote(amountA, amountA, amountB);
 
-
-        //(uint256 a, uint256 b ) = sushiRouter.getReserves(sushiFactory, tokenA, tokenB);
-        console.log("Length: %s", length);
-        //uint256 valueA = sushiRouter.quote(amountB, amountB, amountA);
-        uint256 valueA = sushiRouter.getAmountOut(amountB, amountB, amountA);
-
-
-        console.log("Val: %s", valueA);
         (uint pAmountA, uint pAmountB, uint liquidity) =
             sushiRouter.addLiquidity(
                 address(tokenA),
                 address(tokenB),
                 valueA,
-                amountB,
-                1, // Min amount of liquidity tokens you want to receive (set to 0)
-                1, // Min amount of Sushi tokens you want to receive (set to 0)
+                valueB,
+                1, 
+                1,
                 address(this),
-                block.timestamp + 1000 * 60 * 5 // 5 minutes
+                block.timestamp + 1000 * 60 * 5   
             );
-        // show all 
-        console.log("pAmountA: %s", pAmountA);
-        console.log("pAmountB: %s", pAmountB);
-        console.log("liquidity: %s", liquidity);
-        console.log("length: %s", length+1);
-        return (pAmountA, pAmountB, liquidity, length+1);
+        return (pAmountA, pAmountB, liquidity);
     }
 
-    // Step 3: Approve MasterChef to spend LP tokens
-    function approveMasterChef(uint256 amountLP) private OnlyOwner {
+    // Approve MasterChef to spend LP tokens
+    function approveMasterChef( uint256 amountLP) private OnlyOwner {
         address addressPoolAB = getPoolPairAddressForTokens();
-        IERC20(addressPoolAB).approve(masterChef, amountLP);
+        IERC20(addressPoolAB).approve(address(masterChef), amountLP);
+
     }
 
-    // Step 4: Deposit LP tokens into MasterChef
-    function depositLP(uint pId, uint256 liquidity) private OnlyOwner {
+    //  Deposit LP tokens into MasterChef
+    function depositLP(uint256 liquidity) private OnlyOwner {
         if (isMasterChefV1) {
-            IMasterChef(masterChef).deposit(pId, liquidity);
+            console.log("MasterChefV1");
+            IMasterChef(masterChef).deposit(pidMasterChef, liquidity);
         } else {
-            IMasterChefV2(masterChef).deposit(pId, liquidity, address(this));
+            console.log("MasterChefV2");
+            uint data = IMasterChefV2(masterChef).poolLength();
+            console.log("PoolLength: %s", data);
+            IMasterChefV2(masterChef).deposit(pidMasterChef-2, liquidity, address(this));
         }
     }
 

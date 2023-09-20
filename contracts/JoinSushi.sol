@@ -7,8 +7,6 @@ import "./SushiSwap/IMasterChefV2.sol";
 import "./UniSwap/IUniswapV2Factory.sol";
 import "./UniSwap/IUniswapV2Router01.sol";
 
-import "hardhat/console.sol";
-
 contract SushiSwapLiquidityInteract {
     address public owner;
     IUniswapV2Router01 public sushiRouter;

@@ -6,7 +6,8 @@ The smart contract is compatible with both MasterChefV1 and MasterChefV2, and it
 
 ## Setup
 
-`npm install`
+1. `git clone https://github.com/rtomas/join-sushi.git`
+2. `npm install`
 
 ## Test
 

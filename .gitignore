@@ -10,3 +10,4 @@ cache
 artifacts
 
 bin
+.DS_Store
